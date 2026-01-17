@@ -44,7 +44,7 @@ crearMapa <- function(df, variable, bar=TRUE){
 
 
 # Funció per a fer mapes amb tm_shape
-mapaClusterEsp <- function(df,var,k=5){
+mapaEstEsp <- function(df,var,k=5){
   tm_shape(st_as_sf(df)) +
     tm_polygons(
       fill = var, 
@@ -239,7 +239,7 @@ localMoranZEst <- as.data.frame(localMoranZEst) %>%
 mapesLocalMoran <- list()
 it <- 1
 for(i in names(dfLog)[9:20][1:3]){
-  mapesLocalMoran[[it]] <- mapaClusterEsp(localMoranZEst,i)
+  mapesLocalMoran[[it]] <- mapaEstEsp(localMoranZEst,i)
   it <- it + 1
 }
 
@@ -265,14 +265,13 @@ localGZEst <- as.data.frame(localGZEst) %>%
 mapesLocalG <- list()
 it <- 1
 for(i in names(dfLog)[9:20]){
-  mapesLocalG[[it]] <- mapaClusterEsp(localGZEst,i)
+  mapesLocalG[[it]] <- mapaEstEsp(localGZEst,i)
   it <- it + 1
 }
 
 
 
 ### CLUSTERING ###
-## Clústering definitiu ##
 data_scaled <- localGZEst %>% select(
   edatMitjanaHabitatges,
   superficieMitjana,
@@ -304,26 +303,15 @@ plot(2:15, sil, type = "b", pch = 19,
      xlab = "Nombre de clústers (k)",
      ylab = "Mitjana silhouette")
 
-
-# Fem el dendograma amb 11 clusters
+# Es fa el dendograma amb 11 clústers
 dend <- as.dendrogram(hc)
- colors <- c(
-   "#0072B2", # blau
-   "#E69F00", # taronja
-   "#009E73", # verd
-   "#D55E00", # vermell
-   "#CC79A7", # rosa
-   "#F0E442", # groc
-   "#56B4E9", # blau clar
-   "#999999", # gris
-   "#AC66CC", # lila
-   "#66CC99", # verd menta
-   "#FF6666"  # vermell clar
- )
-colors_dend <- color_branches(dend, labels = objecto, k = 11, col = colors)
+colors <- brewer.pal(11, "Set3")
+# Colors ordenats per a que mapa i dendograma coincideixin
+colors_mapa <- colors[c(1,11,2,6,5,4,8,10,7,3,9)] 
+colors_dend <- color_branches(dend, k = 11, col = colors_mapa)
 plot(colors_dend)
 
-# dendograma
+# Dendograma
 dfLogEsc$jerarquic <- as.factor(cutree(hc,k=11))
 crearMapa(dfLogEsc,"jerarquic")
 
@@ -379,7 +367,7 @@ ggplot() +
     linewidth = 0.7
   ) +
   scale_fill_brewer(palette = "Set3") +
-  scale_x_discrete(drop = FALSE) +   # 🔥 Mostra totes les etiquetes a tots els facets
+  scale_x_discrete(drop = FALSE) +
   facet_wrap(~ variable, scales = "free_y") +
   labs(
     title = "Mitjana per variable i jerarquia\nAmb línia de mitjana global",
@@ -391,7 +379,7 @@ ggplot() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
     strip.text = element_text(face = "bold"),
-    panel.grid = element_blank(),           # 🔥 Elimina la quadrícula completa
+    panel.grid = element_blank(),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank()
   )
